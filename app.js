@@ -1,8 +1,14 @@
 const express = require('express');
 const app = express();
-
 const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
+const fileUpload = require('express-fileupload');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const xssClean = require('xss-clean');
+const hpp = require('hpp');
+const cors = require('cors');
 
 //Now we call the database connection
 const connectDatabase = require('./config/database');
@@ -24,18 +30,46 @@ process.on('uncaughtException', err =>{
 //Connecting to database
 connectDatabase();
 
+// Setup Security headers
+app.use(helmet());
+
 // Setup body parser
 app.use(express.json());
 
 //Setting the Cookie Parser
 app.use(cookieParser());
 
+// Handle File uploads
+app.use(fileUpload());
+
+// Sanitize Data
+app.use(mongoSanitize());
+
+// Prevent xss Attacks
+app.use(xssClean());
+
+// Prevent Parameter Pollution
+app.use(hpp());
+
+// Rate Limiting
+const limiter = rateLimit({
+    windowsMs: 10*60*1000, // 10 Mins
+    max : 100
+});
+
+app.use(limiter);
+
+// Setup CORS - Accessible By Other Domains
+app.use(cors());
+
 // Importing All routes
 const jobs = require('./routes/jobs');
 const auth = require('./routes/auth');
+const user = require('./routes/user');
 
-app.use('/api/v1',jobs);
-app.use('/api/v1',auth);
+app.use('/api/v1', jobs);
+app.use('/api/v1', auth);
+app.use('/api/v1', user);
 
 // Handle unhandled routes
 app.all('/{*splat}', (req, res, next) => {

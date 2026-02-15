@@ -34,6 +34,19 @@ module.exports = (err, req, res, next) => {
             const message = `Duplicate ${Object.keys(err.keyValue)} entered.`;
             error = new ErrorHandler(message, 400);
         }
+
+        // Handling Wrong JWT Token Error
+        if(err.name === 'JsonWebTokenError'){
+            const message = 'JSON Web Token is Invalid. Try Again!!!';
+            error = new ErrorHandler(message, 500);
+        }
+
+        // Handling Expired JWT Token Error
+        if(err.name === 'TokenExpiredError') {
+            const message = 'JSOn Web Token is Expired. Please Try Again!';
+            error = new ErrorHandler(message, 500);
+        }
+
         res.status(error.statusCode).json({
             success : false,
             message : error.message || 'Internal Server Error.'

@@ -9,7 +9,8 @@ const {
     getJobsInRadius,
     updateJob,
     deleteJob,
-    jobStats
+    jobStats,
+    applyJob
 
 } = require('../controllers/jobsController');
 
@@ -22,6 +23,8 @@ router.route('/stats/:topic').get(jobStats);
 
 router.route('/job/new').post(isAuthenticatedUser, authorizeRoles
     ('employer', 'admin'), newJob);
+
+router.route('/job/:id/apply').put(isAuthenticatedUser, authorizeRoles('user'), applyJob);
 //Since they are sharing the same route, we do them/ co-join them here
 router.route('/job/:id')
             .put(isAuthenticatedUser, authorizeRoles

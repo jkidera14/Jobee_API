@@ -36,10 +36,20 @@ const userSchema = new mongoose.Schema({
     resetPasswordToken : String,
     resetPasswordExpire : Date
 
+},
+{
+    // Enabling use of Virtual
+    toJSON : {virtuals : true},
+    toObject : {virtuals : true}
 });
 
 //Encrypting passwords before saving
 userSchema.pre('save', async function(next) {
+
+    if(!this.isModified('password')){
+        next();
+    }
+
     this.password = await bcrypt.hash(this.password, 10)
 });
 
@@ -71,5 +81,14 @@ userSchema.methods.getResetPasswordToken = function() {
 
     return resetToken;
 } 
+
+// Show All the Jobs created by User using Virtual
+userSchema.virtual('jobsPublished', {
+    ref : 'Job',
+    localField : '_id',
+    foreignField : 'user',
+    justOne : false
+});
+
 
 module.exports = mongoose.model('User', userSchema);
